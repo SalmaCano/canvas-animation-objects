@@ -1,200 +1,111 @@
-const canvas = document.getElementById("canvas");
+document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
 
-let ctx = canvas.getContext("2d");
+    const window_height = 300;
+    const window_width = 500;
 
+    canvas.height = window_height;
+    canvas.width = window_width;
+    canvas.style.backgroundColor = "#b7f7ed";
 
-const window_height = "300";
+    const coordinatesTable = document.getElementById('coordinatesTable');
 
-const window_width = "500";
+    class Circle {
+        constructor(id, x, y, radius, color, text, backcolor, speed) {
+            this.id = id;
+            this.posX = x;
+            this.posY = y;
+            this.radius = radius;
+            this.color = color;
+            this.text = text;
+            this.backcolor = backcolor;
+            this.speed = speed;
 
+            this.dx = 1 * this.speed;
+            this.dy = 1 * this.speed;
+        }
 
-canvas.height = window_height;
+        draw(context) {
+            context.beginPath();
+            context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2, false);
+            context.fillStyle = this.backcolor;
+            context.fill();
 
-canvas.width = window_width;
+            context.lineWidth = 5;
+            context.strokeStyle = this.color;
+            context.stroke();
 
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.font = "bold 20px cursive";
+            context.fillStyle = "white";
+            context.fillText(this.text, this.posX, this.posY);
 
-canvas.style.backgroundColor = "#b7f7ed";
+            context.closePath();
+        }
 
+        update(context) {
+            this.draw(context);
 
-class Circle {
+            if (this.posX + this.radius > window_width || this.posX - this.radius < 0) {
+                this.dx = -this.dx;
+            }
 
-  constructor(x, y, radius, color, text, backcolor, speed) {
+            if (this.posY + this.radius > window_height || this.posY - this.radius < 0) {
+                this.dy = -this.dy;
+            }
 
-    this.posX = x;
-
-    this.posY = y;
-
-    this.radius = radius;
-
-    this.color = color;
-
-    this.text = text;
-
-    this.backcolor = backcolor;
-
-
-    this.speed = speed;
-
-
-    this.dx = 1 * this.speed;
-
-    this.dy = 1 * this.speed;
-
-  }
-
-  draw(context) {
-
-    //Rellena el objeto
-
-    context.beginPath();
-
-    context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2, false);
-
-    context.fillStyle = this.backcolor;
-
-    context.fill();
-
-
-    //Dibuja la línea del objeto
-
-    context.lineWidth = 5;
-
-    context.strokeStyle = this.color;
-
-    context.stroke();
-
-
-    //Dibuja el texto al centro del objeto
-
-    context.textAlign = "center";
-
-    context.textBaseline = "middle";
-
-    context.font = "bold 20px cursive";
-
-    context.fillStyle = "white";
-
-    context.fillText(this.text, this.posX, this.posY);
-
-
-    context.closePath();
-
-  }
-
-
-  update(context) {
-
-    this.draw(context);
-
-
-    //Si el circulo supera el margen derecho entonces se mueve a la izquierda
-
-    if (this.posX + this.radius > window_width || this.posX - this.radius < 0) {
-
-      this.dx = -this.dx;
-
+            this.posX += this.dx;
+            this.posY += this.dy;
+        }
     }
 
+    const objects = [];
 
-    //Si el circulo supera el margen superior entonces se mueve a abajo
+    for (let i = 1; i <= 10; i++) {
+        let randomRadius = Math.floor(Math.random() * 30 + 20);
+        let randomX = Math.random() * window_width;
+        let randomY = Math.random() * window_height;
+        let randomBackcolor = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
+        let randomStrokecolor = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
+        let randomSpeed = Math.random() * 3 + 1;
 
-    if (this.posY + this.radius > window_height || this.posY - this.radius < 0) {
+        randomX = randomX < randomRadius ? randomRadius : randomX > window_width - randomRadius ? window_width - randomRadius : randomX;
+        randomY = randomY < randomRadius ? randomRadius : randomY > window_height - randomRadius ? window_height - randomRadius : randomY;
 
-      this.dy = -this.dy;
-
+        let circle = new Circle(i, randomX, randomY, randomRadius, randomStrokecolor, i.toString(), randomBackcolor, randomSpeed);
+        objects.push(circle);
     }
 
+    function updateTable() {
+        coordinatesTable.innerHTML = ''; // Clear the table
+        objects.forEach(obj => {
+            let row = document.createElement('tr');
+            let cellId = document.createElement('td');
+            let cellX = document.createElement('td');
+            let cellY = document.createElement('td');
 
-    this.posX += this.dx;
+            cellId.textContent = obj.id;
+            cellX.textContent = Math.round(obj.posX);
+            cellY.textContent = Math.round(obj.posY);
 
-    this.posY += this.dy;
+            row.appendChild(cellId);
+            row.appendChild(cellX);
+            row.appendChild(cellY);
 
-  }
+            coordinatesTable.appendChild(row);
+        });
+    }
 
-}
+    function animate() {
+        ctx.clearRect(0, 0, window_width, window_height);
+        objects.forEach(obj => {
+            obj.update(ctx);
+        });
+        updateTable();
+        requestAnimationFrame(animate);
+    }
 
-
-let randomRadius = Math.floor(Math.random() * 60 + 20);
-
-let randomX = Math.random() * window_width;
-
-let randomY = Math.random() * window_height;
-
-let randomBackcolor = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
-
-let randomStrokecolor = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
-
-
-randomX = randomX < randomRadius ? randomRadius : randomX > window_width - randomRadius ? window_width - randomRadius : randomX;
-
-randomY = randomY < randomRadius ? randomRadius : randomY > window_height - randomRadius ? window_height - randomRadius : randomY;
-
-
-let miCirculo = new Circle(randomX, randomY, randomRadius, randomStrokecolor, "1", randomBackcolor, 2);
-
-miCirculo.draw(ctx);
-
-
-let updateCircle = function () {
-
-  requestAnimationFrame(updateCircle);
-
-  ctx.clearRect(0, 0, window_width, window_height);
-
-  miCirculo.update(ctx);
-
-};
-
-
-updateCircle();
-
-
-/* const nCircles = 10;
-
-
-let circles = [];
-
-
-for (let i = 0; i < nCircles; i++) {
-
-  let randomRadius = Math.floor(Math.random() * 30 + 20);
-
-  let randomX = Math.random() * window_width;
-
-  let randomY = Math.random() * window_height;
-
-  let randomBackcolor = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
-
-  let randomStrokecolor = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
-
-
-  randomX = randomX < randomRadius ? randomRadius : randomX > window_width - randomRadius ? window_width - randomRadius : randomX;
-
-  randomY = randomY < randomRadius ? randomRadius : randomY > window_height - randomRadius ? window_height - randomRadius : randomY;
-
-
-  let miCirculo = new Circle(randomX, randomY, randomRadius, randomStrokecolor, i+1, randomBackcolor, 2);
-
-  circles.push(miCirculo);
-
-}
-
-
-let updateCircle = function () {
-
-  requestAnimationFrame(updateCircle);
-
-  ctx.clearRect(0, 0, window_width, window_height);
-
-  circles.forEach((circle) => {
-
-    circle.update(ctx);
-
-  });
-
-};
-
-updateCircle();
-
-
- */
+    animate();
+});
